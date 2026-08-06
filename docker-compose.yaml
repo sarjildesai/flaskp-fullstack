@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./backend
+    container_name: flaskp-backend
+    ports:
+      - "5000:5000"
+    networks:
+      - flaskp-network
+
+  frontend:
+    build: ./frontend
+    container_name: flaskp-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Browser-facing URL — the user's browser calls this directly,
+      # so it must be the host-mapped backend address, not the
+      # internal docker service name.
+      - BACKEND_URL=http://localhost:5000
+    depends_on:
+      - backend
+    networks:
+      - flaskp-network
+
+networks:
+  flaskp-network:
+    driver: bridge
