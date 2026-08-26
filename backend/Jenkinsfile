@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_DIR = "/home/ubuntu/app/flaskp-fullstack/backend"
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install dependencies') {
+            steps {
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh '''
+                    . venv/bin/activate
+                    if ls test_*.py > /dev/null 2>&1 || [ -d tests ]; then
+                        pip install pytest
+                        pytest --maxfail=1 --disable-warnings -q
+                    else
+                        echo "No tests found, skipping."
+                    fi
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Flask backend build succeeded.'
+        }
+        failure {
+            echo 'Flask backend build failed — check console output above.'
+        }
+    }
+}
